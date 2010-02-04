@@ -7,7 +7,7 @@ public class PlayerGeneric extends ActionableContainerGeneric<Item> implements P
 	private String name;
 	private Game game;
 	private Place location;
-	private int maxItems = 4;    // maximum number of items allowed in basket
+	private int maxItems = 7;    // maximum number of items allowed in basket
 	
 	public PlayerGeneric(String name, Game game) {
 		super();

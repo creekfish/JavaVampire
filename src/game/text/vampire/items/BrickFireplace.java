@@ -2,17 +2,13 @@ package game.text.vampire.items;
 
 import game.text.ActionGeneric;
 import game.text.Actor;
-import game.text.Container;
-import game.text.Item;
-import game.text.ItemGeneric;
-import game.text.Place;
+import game.text.ItemFixedInPlace;
 import game.text.Player;
 import game.text.Result;
 import game.text.ResultGeneric;
 import game.text.TextGame;
-import game.text.exceptions.ActionException;
 
-public class BrickFireplace extends ItemGeneric {
+public class BrickFireplace extends ItemFixedInPlace {
 	private TextGame game;
 	
 	public BrickFireplace(TextGame _game) {
@@ -57,16 +53,5 @@ public class BrickFireplace extends ItemGeneric {
 					}
 				}								
 			});
-	}
-	
-	@Override
-	public void move(Container<Item> destination) throws ActionException {
-		// disable player moving this item
-		if (destination instanceof Place) {  
-			super.move(destination);
-		} else {
-			throw new ActionException("You can't get it");
-		}
 	}	
-	
 }

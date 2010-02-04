@@ -15,9 +15,24 @@ import game.text.Result;
 import game.text.ResultGeneric;
 import game.text.TextGameSinglePlayer;
 import game.text.exceptions.ActionException;
+import game.text.vampire.items.Axe;
+import game.text.vampire.items.Bookcase;
+import game.text.vampire.items.BrickFireplace;
+import game.text.vampire.items.CheddarCheese;
+import game.text.vampire.items.CoilOfRope;
+import game.text.vampire.items.FireInTheFireplace;
+import game.text.vampire.items.Parapets;
+import game.text.vampire.items.ParchmentScroll;
 import game.text.vampire.items.Sign;
+import game.text.vampire.items.SledgeHammer;
 import game.text.vampire.items.Timepiece;
+import game.text.vampire.items.Wine;
+import game.text.vampire.places.Armory;
 import game.text.vampire.places.EntranceHall;
+import game.text.vampire.places.HiddenCorridor;
+import game.text.vampire.places.Library;
+import game.text.vampire.places.Study;
+import game.text.vampire.places.Tower;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -93,6 +108,22 @@ public class Vampire extends TextGameSinglePlayer {
 		gameTime += minutes;
 	}
 	
+	
+	@Override
+	public void setDefaultActions() {
+		super.setDefaultActions();
+		
+		// verb "row" always means row the boat
+		this.addAction(new ActionGeneric("row") { 
+				@Override
+				public Result execute(Actor actor) {
+					return Vampire.this.getPlace("boat").executeAction("row", Vampire.this.getPlayer());
+				}						
+			}
+		);
+	}
+	
+	
 	/**
 	 * @param args
 	 */	
@@ -110,141 +141,49 @@ public class Vampire extends TextGameSinglePlayer {
 		game.addDirection(DirectionGeneric.Up);
 		game.addDirection(DirectionGeneric.Down);
 // can add new directions like this:	game.addDirection(new DirectionGeneric("Sideways"));
-
-		// create places and items
 		
-		// 1
-
-		// Specific classes defined for items and place
+		// create items
 		
 		game.addItem(new Timepiece(game));
 		game.addItem(new Sign(game));
+
+		game.addItem(new BrickFireplace(game));
+		game.addItem("fireplace", game.getItem("brick fireplace"));  // "fire" = alias for "brick fireplace"
+		game.addItem("_fire", new FireInTheFireplace(game));  // no direct reference to fire in the game
+		game.addItem(new CheddarCheese(game));
+		game.addItem("cheese", game.getItem("cheddar cheese"));    // alias for cheddar cheese is "cheese"
+		game.addItem(new Wine(game));
+		
+		game.addItem(new ParchmentScroll(game));
+		game.addItem("scroll", game.getItem("parchment scroll"));  // "scroll" = alias for "parchment scroll"
+		game.addItem(new Bookcase(game));
+
+		game.addItem(new Axe(game));
+		
+		game.addItem("_parapets", new Parapets(game));  // no direct reference to parapets as game item
+		game.addItem(new SledgeHammer(game));
+
+		game.addItem("rope", new CoilOfRope(game));
+
+		
+		// create places populated with items in their initial positions
+		
 		try {
-			game.addPlace(new EntranceHall(game));		
+			game.addPlace(new EntranceHall(game));
+			game.addPlace(new Study(game));
+			game.addPlace(new Library(game));
+			game.addPlace(new Armory(game));
+			game.addPlace(new Tower(game));
+			
+			
+			game.addPlace(new HiddenCorridor(game));
+
 		} catch (ActionException e) {
 			e.printStackTrace();
 		}
 		
 		// Or anonymous class definitions can be used for items to override methods (since only
 		// one specific item instance exists).
-		
-		game.addPlace(new PlaceGeneric("Study", ""));
-		game.addItem(new ItemGeneric("Brick Fireplace", "",
-				new ArrayList<Action>(){{
-					add(new ActionGeneric("hit") {
-							@Override
-							public Result execute(Actor actor) {
-								if (((Player) actor).getLocation().hasOne("brick fireplace")) {
-									game.output("      -- With what? ");
-									String input = game.input();
-									if (game.matchItem(input) == game.getItem("sledge hammer") && 
-											((Player) actor).hasOne("sledge hammer") && 
-											game.getItem("fireplace").getData("broken") == null) {
-										game.getItem("fireplace").changeName("Broken Fireplace");  // the fireplace gets a new "look"
-										game.getPlace("_fireplace").changeName("Broken Fireplace");  // the fireplace place name must be changed
-										game.getItem("fireplace").setData("broken", new Boolean(true));  // mark the fireplace as broken
-										game.getPlace("_fireplace").setConnection(game.getDirection("north"), game.getPlace("secret passage")); // new hole leads to secret passage!
-										return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
-									}
-									return new ResultGeneric(false, "Nothing happened\n");
-								} else {
-									return new ResultGeneric(false, "I don't see any "+game.getItem("fireplace").getName());
-								}
-							}								
-						}
-					);
-					add(new ActionGeneric("go") {
-							@Override
-							public Result execute(Actor actor) {
-								if (((Player) actor).getLocation().hasOne("brick fireplace")) {
-									if (game.getItem("_fire").getData("out") != null) {
-										// go fireplace leads to broken fireplace place...
-										((Player) actor).setLocation(game.getPlace("_fireplace"));
-										return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
-									} else {
-										// game over
-										game.end(false, " You have Burned to Death");
-										return null;
-									}
-								} else {
-									return new ResultGeneric(false, "You can't go there");
-								}
-							}								
-						}
-					);
-				}}
-			) {
-				@Override
-				public void move(Container<Item> destination) throws ActionException {
-					// disable player moving this item
-					if (destination instanceof Place) {  
-						super.move(destination);
-					} else {
-						throw new ActionException("You can't get it");
-					}
-				}	
-			}
-		);
-		game.addItem("fireplace", game.getItem("brick fireplace"));  // "fire" = alias for "brick fireplace"
-		game.addItem("_fire", new ItemGeneric("Fire in the Fireplace", ""));  // no direct reference to fire in the game
-		game.addItem(new ItemGeneric("Cheddar Cheese", ""));
-		game.addItem("cheese", game.getItem("cheddar cheese"));    // alias for cheddar cheese is "cheese"
-		game.addItem(new ItemGeneric("Wine", ""));
-		
-		game.addPlace(new PlaceGeneric("Library", ""));
-		game.addItem(new ItemGeneric("Parchment Scroll", "") {
-				@Override
-				public String getDescription() {
-					if (this.getLocation() == game.getPlayer()) {
-						return "The Scroll reads: 'Not all exits are obvious.'";
-					} else {
-						return "You don't have it";
-					}
-				}			
-
-				@Override
-				public String look() {
-					return game.getItem("parchment scroll").getDescription();
-				}	
-			}
-		);
-		game.addItem("scroll", game.getItem("parchment scroll"));  // "scroll" = alias for "parchment scroll"
-		game.addItem(new ItemGeneric("Bookcase", "",  
-				new ArrayList<Action>(){{
-					add(new ActionGeneric("push") {
-							@Override
-							public Result execute(Actor actor) {
-								// open the doorway down to hidden corridor
-								game.getPlace("library").connect(game.getPlace("hidden corridor"), game.getDirection("down"));
-								return new ResultGeneric(true, "Aha! - You have revealed a Doorway\n\n" + 
-										game.getPlace("library").look());
-							}						
-						}
-					);
-				}}
-			) {
-				@Override
-				public void move(Container<Item> destination) throws ActionException {
-					// disable player moving this item
-					if (destination instanceof Place) {
-						super.move(destination);
-					} else {
-						throw new ActionException("You can't get it");
-					}
-				}	
-			}
-		);
-		
-		game.addPlace(new PlaceGeneric("Armory", ""));
-//////		game.addPlace(new PlaceDarkWithoutItem("Armory", "", game.getItem("timepiece")));
-		game.addItem(new ItemGeneric("Axe", ""));
-
-		game.addPlace(new PlaceGeneric("Tower", ""));
-		game.addItem("_parapets", new ItemGeneric("Parapets", ""));  // no direct reference to parapets as game item
-		game.addItem(new ItemGeneric("Sledge Hammer", ""));
-		game.addItem("hammer", game.getItem("sledge hammer"));  // "hammer" = alias for "sledge hammer"
-
-		// 6 
 
 		game.addPlace(new PlaceGeneric("Lower Tower", ""));
 		game.addItem(new ItemGeneric("Oar", ""));
@@ -309,73 +248,9 @@ public class Vampire extends TextGameSinglePlayer {
 		game.addPlace("_fireplace", new PlaceGeneric("Brick Fireplace", ""));	
 		game.addItem(new ItemGeneric("Torch", ""));
 		
-		game.addPlace(new PlaceGeneric("Hidden Corridor", ""));
-		game.addItem("rope", new ItemGeneric("Coil of Rope", "",
-				new ArrayList<Action>(){{
-					add(new ActionGeneric("tie") {
-							@Override
-							public Result execute(Actor actor) {
-								if (game.getItem("rope").getData("tied") == null) {  // if rope is not already tied
-									// tie the rope to the parapets if we're in the tower
-									game.output("      -- To what? ");
-									String input = game.input();
-									// NOTE: it's a flaw in the original game that you can tie the rope to the parapets from anywhere!
-									if (((Player) actor).getLocation() == game.getPlace("tower")) {
-										if (game.matchItem(input) == game.getItem("parapets")) {
-											game.getItem("_parapets").changeName("Rope tied to the Parapet");  // the parapets get a new "look"
-											try {
-												((Player) actor).drop(game.getItem("rope"));  // coil of rope is dropped to climb
-												game.getItem("rope").setData("tied", new Boolean(true));  // mark the rope as tied
-												game.getItem("rope").changeName(null);  // item will be skipped in item display lists, not visible in place
-												return new ResultGeneric(true, "Rope tied to the Parapet!\n");
-											} catch (ActionException e) {
-												return new ResultGeneric(false, e.getMessage());												
-											}
-										}
-									}
-									return new ResultGeneric(false, "You can't do that\n");
-								} else {
-									return new ResultGeneric(false, "You can't do that\n");									
-								}								
-							}					
-						}
-					);
+//		game.addPlace(new PlaceGeneric("Hidden Corridor", ""));
+//		game.addItem("rope", new CoilOfRope(game));
 
-					add(new ActionGeneric("climb") {
-							@Override
-							public Result execute(Actor actor) {
-								if (game.getItem("rope").getData("tied") != null) {  // if rope is tied to the parapet
-									// rope leads to the lower tower...
-									((Player) actor).setLocation(game.getPlace("lower tower"));
-									return new ResultGeneric(true, "Climbed down rope\n\n"+((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
-								} else {
-									return new ResultGeneric(false, "You can't do that\n");									
-								}								
-							}					
-						}
-					);
-				}}
-			) {
-				@Override
-				public void move(Container<Item> destination) throws ActionException {
-					if (this.getData("tied") == null) {  // if the rope is not yet tied
-						super.move(destination);
-					} else {
-						throw new ActionException("You can't get it");
-					}
-				}	
-
-				@Override
-				public String look() { 
-					if (this.getData("tied") == null) {   // if the rope is not yet tied
-						return this.getName();
-					} else {
-						return null;  // make the item invisible to the player
-					}
-				}	
-			}
-		);  // "rope" = coil of rope
-		
 		game.addPlace(new PlaceDarkWithoutItem("Secret Passage", "", game.getItem("torch")));
 
 		// 11
@@ -430,7 +305,9 @@ public class Vampire extends TextGameSinglePlayer {
 									return new ResultGeneric(false, e.getMessage());
 								}
 							}
-							return new ResultGeneric(true, "You have rowed to the "+((Player) actor).getLocation().getName());
+							return new ResultGeneric(true, "You have rowed to the "+
+									((Player) actor).getLocation().getName()+"\n\n"+
+									((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
 						} else {
 							return new ResultGeneric(false, "You can't do that");
 						}						
@@ -452,6 +329,13 @@ public class Vampire extends TextGameSinglePlayer {
 				}								
 			}
 		);
+		game.getPlace("boat").addAction(new ActionGeneric("get") {
+			@Override
+			public Result execute(Actor actor) {
+				return new ResultGeneric(false, "You can't get it");
+			}								
+		}
+	);
 		
 		
 		game.addPlace(new PlaceGeneric("Alchemist's Lab", ""));
@@ -490,6 +374,10 @@ public class Vampire extends TextGameSinglePlayer {
 
 				@Override
 				public String look() {
+					if (this.getLocation() != game.getPlayer().getLocation()) {
+						return "I don't see any "+this.getName();
+					}
+
 					if (this.getData("has_key") != null) {   // if the rat still has the key
 						game.getItem("key").setData("can_see", new Boolean(true));  // looking at it makes the key visible in the room
 					}
@@ -549,18 +437,18 @@ public class Vampire extends TextGameSinglePlayer {
 //			game.getItem("timepiece").move(game.getPlace("entrance hall"));
 //			game.getItem("sign").move(game.getPlace("entrance hall"));
 
-			game.getItem("fireplace").move(game.getPlace("study"));
-			game.getItem("_fire").move(game.getPlace("study"));
-			game.getItem("cheddar cheese").move(game.getPlace("study"));
-			game.getItem("wine").move(game.getPlace("study"));
+//			game.getItem("fireplace").move(game.getPlace("study"));
+//			game.getItem("_fire").move(game.getPlace("study"));
+//			game.getItem("cheddar cheese").move(game.getPlace("study"));
+//			game.getItem("wine").move(game.getPlace("study"));
 
-			game.getItem("parchment scroll").move(game.getPlace("library"));
-			game.getItem("bookcase").move(game.getPlace("library"));
+//			game.getItem("parchment scroll").move(game.getPlace("library"));
+//			game.getItem("bookcase").move(game.getPlace("library"));
 			
-			game.getItem("axe").move(game.getPlace("armory"));
+//			game.getItem("axe").move(game.getPlace("armory"));
 
-			game.getItem("_parapets").move(game.getPlace("tower"));
-			game.getItem("sledge hammer").move(game.getPlace("tower"));
+//			game.getItem("_parapets").move(game.getPlace("tower"));
+//			game.getItem("sledge hammer").move(game.getPlace("tower"));
 			
 			// 6
 			
@@ -621,6 +509,7 @@ public class Vampire extends TextGameSinglePlayer {
 		game.getPlace("secret passage").setConnection(game.getDirection("south"), game.getPlace("_fireplace"));
 		game.getPlace("torture chamber").setConnection(game.getDirection("west"), game.getPlace("alchemist's lab"));
 
+		game.getPlace("boat").setConnection(game.getDirection("south"), game.getPlace("lake"));
 		
 		// initial player location	
 		game.getPlayer().setLocation(game.getPlace("entrance hall"));
@@ -632,12 +521,21 @@ public class Vampire extends TextGameSinglePlayer {
 		/*
 		 * CHEAT SHORTCUTS FOR DEVELOPMENT!
 		 */
-		game.getItem("_fire").setData("out", new Boolean(true));
-		game.getItem("fireplace").setData("broken", new Boolean(true));
-		game.getPlace("lower tower").connect(game.getPlace("tower"), game.getDirection("up"));				
-		game.getPlace("_fireplace").setConnection(game.getDirection("north"), game.getPlace("secret passage")); 
+//		game.getItem("_fire").setData("out", new Boolean(true));
+//		game.getItem("fireplace").setData("broken", new Boolean(true));
+//		game.getPlace("lower tower").connect(game.getPlace("tower"), game.getDirection("up"));				
+//		game.getPlace("_fireplace").setConnection(game.getDirection("north"), game.getPlace("secret passage")); 
+//		try {
+//			game.getItem("oar").move(game.getPlace("_fireplace"));
+//		} catch (ActionException e) {
+//			e.printStackTrace();
+//		}
+
+		
+		game.getPlayer().setLocation(game.getPlace("lake"));
 		try {
-			game.getItem("oar").move(game.getPlace("_fireplace"));
+			game.getItem("torch").move(game.getPlayer());		
+			game.getItem("oar").move(game.getPlayer());		
 		} catch (ActionException e) {
 			e.printStackTrace();
 		}
