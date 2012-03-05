@@ -1,5 +1,7 @@
 package game.text;
 
+import game.text.exceptions.ActionException;
+
 import java.util.Collection;
 
 /**
@@ -85,4 +87,9 @@ public interface Place extends Container<Item>, Actionable, Lookable, Thing {
 	 * what the player "sees" looking around this place.
 	 */
 	public String look();
+	
+	/**
+	 * Move the specified item to this place, updating the location of the item.
+	 */
+	public void moveItemHere(Item item) throws ActionException;
 }

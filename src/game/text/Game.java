@@ -28,4 +28,6 @@ public interface Game extends Thing, Actionable {
 	public Place getPlace(String key);
 	public Place matchPlace(String keyStartsWith);
 	public Collection<Place> getPlaces();
+	
+	public String getTime();
 }

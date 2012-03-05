@@ -15,6 +15,9 @@ import game.text.Result;
 import game.text.ResultGeneric;
 import game.text.TextGameSinglePlayer;
 import game.text.exceptions.ActionException;
+import game.text.vampire.items.Sign;
+import game.text.vampire.items.Timepiece;
+import game.text.vampire.places.EntranceHall;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -112,42 +115,18 @@ public class Vampire extends TextGameSinglePlayer {
 		
 		// 1
 
-		game.addPlace(new PlaceGeneric("Entrance Hall", ""));		
-		game.addItem(
-			new ItemGeneric("Timepiece", "") {
-				@Override
-				public String getDescription() {
-					if (this.getLocation() == game.getPlayer()) {
-						return "The time is " + game.getTime();
-					} else {
-						return "You don't have it";
-					}
-				}
-
-				@Override
-				public String look() {
-					return game.getItem("timepiece").getDescription();
-				}	
-			}
-		);
-		game.addItem(
-			new ItemGeneric("Sign", "'The Vampire Wakes at Midnight!'") {
-				@Override
-				public void move(Container<Item> destination) throws ActionException {
-					// disable player moving this item
-					if (destination instanceof Place) {
-						super.move(destination);
-					} else {
-						throw new ActionException("You can't get it");
-					}
-				}
-
-				@Override
-				public String look() {
-					return game.getItem("sign").getDescription();
-				}	
-			}
-		);		
+		// Specific classes defined for items and place
+		
+		game.addItem(new Timepiece(game));
+		game.addItem(new Sign(game));
+		try {
+			game.addPlace(new EntranceHall(game));		
+		} catch (ActionException e) {
+			e.printStackTrace();
+		}
+		
+		// Or anonymous class definitions can be used for items to override methods (since only
+		// one specific item instance exists).
 		
 		game.addPlace(new PlaceGeneric("Study", ""));
 		game.addItem(new ItemGeneric("Brick Fireplace", "",
@@ -417,9 +396,63 @@ public class Vampire extends TextGameSinglePlayer {
 			}
 		);
 		
-		game.addItem(new ItemGeneric("Boat", ""));
+		game.addItem("_boat", new ItemGeneric("Boat", "") {
+				@Override
+				public void move(Container<Item> destination) throws ActionException {
+					// disable player moving this item
+					if (destination instanceof Place) {
+						super.move(destination);
+					} else {
+						throw new ActionException("You can't get it");
+					}
+				}	
+			}
+		);
 		
 		game.addPlace(new PlaceGeneric("Boat", ""));
+		game.getPlace("boat").addAction(new ActionGeneric("row") {
+				@Override
+				public Result execute(Actor actor) {
+					if (((Player) actor).getLocation() == game.getPlace("boat")) {
+						if (((Player) actor).hasOne(game.getItem("oar"))) {
+							if (game.getItem("_boat").getLocation() == game.getPlace("lake")) {
+								((Player) actor).setLocation(game.getPlace("gallery"));
+								try {
+									game.getItem("_boat").move(game.getPlace("gallery"));
+								} catch (ActionException e) {
+									return new ResultGeneric(false, e.getMessage());
+								}
+							} else {								
+								((Player) actor).setLocation(game.getPlace("lake"));
+								try {
+									game.getItem("_boat").move(game.getPlace("lake"));
+								} catch (ActionException e) {
+									return new ResultGeneric(false, e.getMessage());
+								}
+							}
+							return new ResultGeneric(true, "You have rowed to the "+((Player) actor).getLocation().getName());
+						} else {
+							return new ResultGeneric(false, "You can't do that");
+						}						
+					} else {
+						return new ResultGeneric(false, "You can't do that");
+					}								
+				}					
+			}
+		);
+		game.getPlace("boat").addAction(new ActionGeneric("go") {
+				@Override
+				public Result execute(Actor actor) {
+					if (((Player) actor).getLocation().hasOne("boat")) {  // if the boat is in the same room
+						((Player) actor).setLocation(game.getPlace("boat"));
+						return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
+					} else {
+						return new ResultGeneric(false, "You can't go there");
+					}
+				}								
+			}
+		);
+		
 		
 		game.addPlace(new PlaceGeneric("Alchemist's Lab", ""));
 		game.addItem(new ItemGeneric("Flask of Oil", ""));
@@ -513,8 +546,8 @@ public class Vampire extends TextGameSinglePlayer {
 	
 		try {
 			// 1
-			game.getItem("timepiece").move(game.getPlace("entrance hall"));
-			game.getItem("sign").move(game.getPlace("entrance hall"));
+//			game.getItem("timepiece").move(game.getPlace("entrance hall"));
+//			game.getItem("sign").move(game.getPlace("entrance hall"));
 
 			game.getItem("fireplace").move(game.getPlace("study"));
 			game.getItem("_fire").move(game.getPlace("study"));
@@ -543,7 +576,7 @@ public class Vampire extends TextGameSinglePlayer {
 
 			// 11
 			
-			game.getItem("boat").move(game.getPlace("underground lake chamber"));
+			game.getItem("_boat").move(game.getPlace("underground lake chamber"));
 			
 			// nothing in boat
 			
@@ -603,6 +636,11 @@ public class Vampire extends TextGameSinglePlayer {
 		game.getItem("fireplace").setData("broken", new Boolean(true));
 		game.getPlace("lower tower").connect(game.getPlace("tower"), game.getDirection("up"));				
 		game.getPlace("_fireplace").setConnection(game.getDirection("north"), game.getPlace("secret passage")); 
+		try {
+			game.getItem("oar").move(game.getPlace("_fireplace"));
+		} catch (ActionException e) {
+			e.printStackTrace();
+		}
 		
 		
 		// start the game
@@ -622,12 +660,12 @@ public class Vampire extends TextGameSinglePlayer {
 Room Names: D(room#)
 
 130 FOR x = 1 TO 19: READ D$(x): NEXT x
-140 DATA Entrance Hall,Study,Library,Armory,Tower
-150 DATA Lower Tower,Chapel,Brick Fireplace
-160 DATA Hidden Corridor,Secret Passage
-170 DATA Underground Lake Chamber,Boat,Alchemist's Lab
-180 DATA Storeroom,Overhang,Gallery,Antechamber,Vampire's Tomb
-190 DATA Torture Chamber
+140 DATA Entrance Hall,Study,Library,Armory,Tower  5
+150 DATA Lower Tower,Chapel,Brick Fireplace  8
+160 DATA Hidden Corridor,Secret Passage  10
+170 DATA Underground Lake Chamber,Boat,Alchemist's Lab  13
+180 DATA Storeroom,Overhang,Gallery,Antechamber,Vampire's Tomb  18
+190 DATA Torture Chamber 19
 
 Things (first 6 are directions): O$(Item#)
 Location of things: L(Item#-6)
@@ -814,6 +852,9 @@ branch to verb "handlers"
 1570 IF L(S - 6) <> L THEN 1070
 1580 IF S <> 25 THEN 1370
 1590 PRINT "Aha! - You have revealed a Doorway": PRINT : P(L, 6) = 9: GOTO 360
+
+
+
 1600 REM  -KILL-
 1610 IF S < 7 THEN 700
 1620 IF S <> 23 OR LEFT$(O$(23), 1) <> "V" THEN 950
@@ -821,27 +862,47 @@ branch to verb "handlers"
 1640 IF (A$ = "WOO" OR A$ = "STA") AND L(10) = 0 AND O$(16) = WS$ THEN 1660
 1650 COLOR 0, 7: PRINT " You Failed!  The Vampire awakes and sucks your Blood! "; : GOTO 1750
 1660 COLOR 26: PRINT "Congratulations!  You have killed the Vampire": GOTO 1750
+
+
+
 1670 REM  -OIL-
 1680 IF L(9) <> 0 OR L <> 17 OR S <> 22 THEN 950
 1690 PRINT "The Door squeaks Open": PRINT
 1700 OI = 1: O$(22) = "Open Door": P(17, 1) = 18: GOTO 360
+
+
+
 1710 REM  -ROW-
-1720 IF L <> 12 OR L(6) <> 0 THEN 950
+// must be in the boat and oar must be picked up (L(6)==0)
+1720 IF L <> 12 OR L(6) <> 0 THEN 950    
+// R = 11 initially, then R = 16, then next time R = 11.  This alternates between lake chamber and gallery in 
+ * 														  terms of player's position
 1730 R = 27 - R: L = R: PRINT "You have rowed to the "; D$(L)
-1740 PRINT : L(15) = L: GOTO 360
+// move location of boat to players new location
+1740 PRINT : L(15) = L: GOTO 360  
+
+
+
 1750 COLOR 10, 0: PRINT : PRINT : INPUT "Would you like to try again"; A$: GOSUB 1800
 1760 IF LEFT$(A$, 1) = "Y" THEN RUN 100
 1770 IF LEFT$(A$, 1) = "R" THEN T1 = T1 - 2: GOTO 440
 1780 KEY ON: END
+
+
 1800 REM  - MAKE INPUT U/C -
 1810 A$ = LEFT$(A$ + "   ", 3): FOR I = 1 TO 3
 1820 CH = ASC(MID$(A$, I, 1)): IF CH > 96 THEN MID$(A$, I, 1) = CHR$(CH - 32)
 1830 CH = ASC(MID$(B$, I, 1)): IF CH > 96 THEN MID$(B$, I, 1) = CHR$(CH - 32)
 1840 NEXT: RETURN
+
+
 1850 REM - GET "WHAT" -
 1860 COLOR 10: PRINT TAB(40); CHR$(30); CHR$(30); : PRINT "-- "; V$; " what"; : INPUT A$
 1870 COLOR 2: PRINT : GOSUB 1800: RETURN
 2000 PRINT : PRINT : COLOR 2
+
+
+
 2010 PRINT "VAMPIRE'S CASTLE has a concealed goal.  You learn what the goal is"
 2020 PRINT "by exploring your surroundings.  The computer will act as your eyes"
 2030 PRINT "and hands.  It will accepts short phrases as commands and assumes"

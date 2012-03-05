@@ -1,24 +1,28 @@
 package game.text.vampire.items;
 
-import java.util.Collection;
-
-import game.text.Action;
+import game.text.Game;
 import game.text.ItemGeneric;
 
 public class Timepiece extends ItemGeneric {
-
-	public Timepiece(String name, String description) {
-		super(name, description);
-	}
-
-	public Timepiece(String name, String description, Collection<Action> actions) {
-		super(name, description, actions);
+	private Game game;
+	
+	public Timepiece(Game game) {
+		super("Timepiece", "");
+		this.game = game;
 	}
 
 	@Override
 	public String getDescription() {
-NEED TO RETURN GAME TIME HERE... BUT THERE IS NO ACCESS TO GAME... WOULD HAVE TO BE AN INNER CLASS ANON
-OR... WOULD HAVE TO PASS game OBEJCT IN CONSTRUCTORS...
-		return 
+		if (this.getLocation() == game.getPlayer()) {
+			return "The time is " + game.getTime();
+		} else {
+			return "You don't have it";
+		}
 	}
+
+	@Override
+	public String look() {
+		return game.getItem("timepiece").getDescription();
+	}	
+	
 }

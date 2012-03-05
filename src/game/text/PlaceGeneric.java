@@ -1,4 +1,6 @@
 package game.text;
+import game.text.exceptions.ActionException;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -147,5 +149,9 @@ public class PlaceGeneric extends ActionableContainerGeneric<Item> implements Pl
 			ret += d.getName() + " ";
 		}
 		return ret;
+	}
+	
+	public void moveItemHere(Item item) throws ActionException {
+		item.move(this);
 	}
 }
