@@ -1,5 +1,4 @@
 package game.text.vampire;
-import game.text.Action;
 import game.text.ActionGeneric;
 import game.text.Actor;
 import game.text.Container;
@@ -19,22 +18,35 @@ import game.text.vampire.items.Axe;
 import game.text.vampire.items.Bookcase;
 import game.text.vampire.items.BrickFireplace;
 import game.text.vampire.items.CheddarCheese;
+import game.text.vampire.items.Coffin;
 import game.text.vampire.items.CoilOfRope;
+import game.text.vampire.items.Crate;
 import game.text.vampire.items.FireInTheFireplace;
+import game.text.vampire.items.Holywater;
+import game.text.vampire.items.Nails;
+import game.text.vampire.items.Oar;
 import game.text.vampire.items.Parapets;
 import game.text.vampire.items.ParchmentScroll;
+import game.text.vampire.items.RustyDoor;
 import game.text.vampire.items.Sign;
 import game.text.vampire.items.SledgeHammer;
+import game.text.vampire.items.Tapestry;
 import game.text.vampire.items.Timepiece;
+import game.text.vampire.items.Torch;
 import game.text.vampire.items.Wine;
+import game.text.vampire.places.Antechamber;
 import game.text.vampire.places.Armory;
+import game.text.vampire.places.Chapel;
 import game.text.vampire.places.EntranceHall;
 import game.text.vampire.places.HiddenCorridor;
 import game.text.vampire.places.Library;
+import game.text.vampire.places.LowerTower;
+import game.text.vampire.places.Overhang;
+import game.text.vampire.places.SecretPassage;
 import game.text.vampire.places.Study;
 import game.text.vampire.places.Tower;
+import game.text.vampire.places.VampiresTomb;
 
-import java.util.ArrayList;
 import java.util.Collection;
 
 
@@ -93,6 +105,9 @@ public class Vampire extends TextGameSinglePlayer {
 	@Override
 	public void moveDone() {
 		addTime(1);
+		if (gameTime >= 12*60) {
+			this.end(false, " It's midnight: the Vampire is awake, He's at your neck \n");
+		}
 		super.moveDone();
 	}
 	
@@ -113,7 +128,7 @@ public class Vampire extends TextGameSinglePlayer {
 	public void setDefaultActions() {
 		super.setDefaultActions();
 		
-		// verb "row" always means row the boat
+		// verb "row" always means row the boat (flaw in old game?)
 		this.addAction(new ActionGeneric("row") { 
 				@Override
 				public Result execute(Actor actor) {
@@ -121,6 +136,12 @@ public class Vampire extends TextGameSinglePlayer {
 				}						
 			}
 		);
+		this.addAction(new ActionGeneric("open") {
+			@Override
+			public Result execute(Actor actor) {
+				return new ResultGeneric(false, "Nothing happened\n");
+			}								
+		});	
 	}
 	
 	
@@ -146,25 +167,30 @@ public class Vampire extends TextGameSinglePlayer {
 		
 		game.addItem(new Timepiece(game));
 		game.addItem(new Sign(game));
-
 		game.addItem(new BrickFireplace(game));
 		game.addItem("fireplace", game.getItem("brick fireplace"));  // "fire" = alias for "brick fireplace"
 		game.addItem("_fire", new FireInTheFireplace(game));  // no direct reference to fire in the game
 		game.addItem(new CheddarCheese(game));
 		game.addItem("cheese", game.getItem("cheddar cheese"));    // alias for cheddar cheese is "cheese"
 		game.addItem(new Wine(game));
-		
 		game.addItem(new ParchmentScroll(game));
 		game.addItem("scroll", game.getItem("parchment scroll"));  // "scroll" = alias for "parchment scroll"
 		game.addItem(new Bookcase(game));
-
 		game.addItem(new Axe(game));
-		
+		game.addItem(new Torch(game));
+		game.addItem(new Oar(game));
+		game.addItem(new Holywater(game));
 		game.addItem("_parapets", new Parapets(game));  // no direct reference to parapets as game item
 		game.addItem(new SledgeHammer(game));
-
 		game.addItem("rope", new CoilOfRope(game));
+		game.addItem(new Nails(game));
+		game.addItem(new Crate(game));
+		game.addItem(new RustyDoor(game));
+		game.addItem("door", game.getItem("rusty door"));  // alias for "rusty door" is "door"
+		game.addItem(new Coffin(game));
+		game.addItem("coffin", game.getItem("closed coffin"));
 
+		
 		
 		// create places populated with items in their initial positions
 		
@@ -173,10 +199,14 @@ public class Vampire extends TextGameSinglePlayer {
 			game.addPlace(new Study(game));
 			game.addPlace(new Library(game));
 			game.addPlace(new Armory(game));
+			game.addPlace(new Chapel(game));
 			game.addPlace(new Tower(game));
-			
-			
+			game.addPlace(new LowerTower(game));
+			game.addPlace(new SecretPassage(game));
 			game.addPlace(new HiddenCorridor(game));
+			game.addPlace(new Overhang(game));
+			game.addPlace(new Antechamber(game));
+			game.addPlace(new VampiresTomb(game));
 
 		} catch (ActionException e) {
 			e.printStackTrace();
@@ -185,74 +215,66 @@ public class Vampire extends TextGameSinglePlayer {
 		// Or anonymous class definitions can be used for items to override methods (since only
 		// one specific item instance exists).
 
-		game.addPlace(new PlaceGeneric("Lower Tower", ""));
-		game.addItem(new ItemGeneric("Oar", ""));
-		
-		game.addPlace(new PlaceGeneric("Chapel", ""));
-		game.addItem(new ItemGeneric("Holywater", "",
-				new ArrayList<Action>(){{
-					add(new ActionGeneric("get") {
-							@Override
-							public Result execute(Actor actor) {
-
-								if (((Player) actor).getLocation().hasOne("holywater")) {
-									game.output("      -- In what? ");
-									String input = game.input();
-									if (game.matchItem(input) == game.getItem("bucket") && 
-											((Player) actor).hasOne("bucket")) {
-										try {
-											((Player) actor).pickUp(game.getItem("holywater"));
-											this.incrementCount();
-											return new ResultGeneric(true, "You got the "+game.getItem("holywater").getName());
-										} catch (ActionException e) {
-											return new ResultGeneric(false, e.getMessage());
-										}
-									}
-									return new ResultGeneric(false, "You can't do that\n");	
-								} else {
-									return new ResultGeneric(false, "I don't see any "+game.getItem("holywater").getName());									
-								}
-							}					
-						}
-					);
-
-					add(new ActionGeneric("drop") {
-							@Override
-							public Result execute(Actor actor) {
-								if (((Player) actor).hasOne("holywater") &&
-										((Player) actor).getLocation() == game.getPlace("study")) {
-									// in the study, holy water puts out the fire!
-									game.getItem("_fire").changeName("Smoldering Ashes");
-									game.getItem("_fire").setData("out", new Boolean(true));
-									((Player) actor).removeOne("holywater");  // holywater is consumed				
-									return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
-								} else {
-									// normal drop
-									try {
-										((Player) actor).drop(game.getItem("holywater"));
-										this.incrementCount();
-										return new ResultGeneric(true, "The "+game.getItem("holywater").getName()+" is on the "+((Player) actor).getLocation().getName()+" floor");
-									} catch (ActionException e) {
-										return new ResultGeneric(false, e.getMessage());
-									}
-								}								
-							}
-						}
-					);
-				}}
-			));
-		// set "throw" as alias for "drop"
-		game.getItem("holywater").addAction("throw", game.getItem("holywater").getAction("drop"));
-		game.addItem("water", game.getItem("holywater"));  // "water" = alias for "holywater"
+//		game.addPlace(new PlaceGeneric("Chapel", ""));
+//		game.addItem(new ItemGeneric("Holywater", "",
+//				new ArrayList<Action>(){{
+//					add(new ActionGeneric("get") {
+//							@Override
+//							public Result execute(Actor actor) {
+//
+//								if (((Player) actor).getLocation().hasOne("holywater")) {
+//									game.output("      -- In what? ");
+//									String input = game.input();
+//									if (game.matchItem(input) == game.getItem("bucket") && 
+//											((Player) actor).hasOne("bucket")) {
+//										try {
+//											((Player) actor).pickUp(game.getItem("holywater"));
+//											this.incrementCount();
+//											return new ResultGeneric(true, "You got the "+game.getItem("holywater").getName());
+//										} catch (ActionException e) {
+//											return new ResultGeneric(false, e.getMessage());
+//										}
+//									}
+//									return new ResultGeneric(false, "You can't do that\n");	
+//								} else {
+//									return new ResultGeneric(false, "I don't see any "+game.getItem("holywater").getName());									
+//								}
+//							}					
+//						}
+//					);
+//
+//					add(new ActionGeneric("drop") {
+//							@Override
+//							public Result execute(Actor actor) {
+//								if (((Player) actor).hasOne("holywater") &&
+//										((Player) actor).getLocation() == game.getPlace("study")) {
+//									// in the study, holy water puts out the fire!
+//									game.getItem("_fire").changeName("Smoldering Ashes");
+//									game.getItem("_fire").setData("out", new Boolean(true));
+//									((Player) actor).removeOne("holywater");  // holywater is consumed				
+//									return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
+//								} else {
+//									// normal drop
+//									try {
+//										((Player) actor).drop(game.getItem("holywater"));
+//										this.incrementCount();
+//										return new ResultGeneric(true, "The "+game.getItem("holywater").getName()+" is on the "+((Player) actor).getLocation().getName()+" floor");
+//									} catch (ActionException e) {
+//										return new ResultGeneric(false, e.getMessage());
+//									}
+//								}								
+//							}
+//						}
+//					);
+//				}}
+//			));
+//		// set "throw" as alias for "drop"
+//		game.getItem("holywater").addAction("throw", game.getItem("holywater").getAction("drop"));
+//		game.addItem("water", game.getItem("holywater"));  // "water" = alias for "holywater"
 
 		game.addPlace("_fireplace", new PlaceGeneric("Brick Fireplace", ""));	
 		game.addItem(new ItemGeneric("Torch", ""));
 		
-//		game.addPlace(new PlaceGeneric("Hidden Corridor", ""));
-//		game.addItem("rope", new CoilOfRope(game));
-
-		game.addPlace(new PlaceDarkWithoutItem("Secret Passage", "", game.getItem("torch")));
-
 		// 11
 
 		game.addPlace(new PlaceDarkWithoutItem("Underground Lake Chamber", "", game.getItem("torch")));
@@ -343,22 +365,13 @@ public class Vampire extends TextGameSinglePlayer {
 		game.addItem("oil", game.getItem("flask of oil"));    // alias for flask of oil is "oil"
 
 		game.addPlace(new PlaceGeneric("Storeroom", ""));
-		game.addItem(new ItemGeneric("Crate", ""));
 		game.addItem(new ItemGeneric("Bucket", ""));
-
-		game.addPlace(new PlaceGeneric("Overhang", ""));
-		game.addItem(new ItemGeneric("Nails", ""));
 
 		// 16
 		
 		game.addPlace(new PlaceGeneric("Gallery", ""));
-		game.addItem(new ItemGeneric("Tapestry", ""));
-
-		game.addPlace(new PlaceGeneric("Antechamber", ""));
-		game.addItem(new ItemGeneric("Rusty Door", ""));
-
-		game.addPlace(new PlaceGeneric("Vampire's Tomb", ""));
-		game.addItem(new ItemGeneric("Closed Coffin", ""));
+		game.addItem(new Tapestry(game));
+		
 
 		game.addPlace(new PlaceGeneric("Torture Chamber", ""));
 		game.addItem(new ItemGeneric("Rat", "") {
@@ -396,26 +409,30 @@ public class Vampire extends TextGameSinglePlayer {
 		game.addItem(new ItemGeneric("Key", "") {
 				@Override
 				public void move(Container<Item> destination) throws ActionException {
-					if (destination instanceof Place) {
-						super.move(destination);  // always allow key to be dropped any place
-					} else {
-						// player tries to pick up the key
-						if (this.getData("can_see") != null) {  // player must "look" at the rat first to see the key 
-							Place keyPlace = (Place) this.getLocation();
-							if (game.getItem("rat").getLocation() != keyPlace) {
-								// if the key is in a room without the rat and the player tries to pick it up,
-								// the rat moves to that room and has the key again!
-								game.getItem("rat").move(keyPlace);
-								throw new ActionException("The Rat has it");
-							}
-							if (((game.getItem("rat").getLocation() == keyPlace) && (game.getItem("cheese").getLocation() == keyPlace))) {
-								// key, rat, and cheese must all be in the room together to pick up the key!
-								super.move(destination);
-							} else {
-								throw new ActionException("The Rat has it");
-							}
-						}
-					}
+					super.move(destination);
+					return;
+//					if (destination instanceof Place) {
+//						super.move(destination);  // always allow key to be dropped any place
+//					} else {
+//						// player tries to pick up the key
+//						if (this.getData("can_see") != null) {  // player must "look" at the rat first to see the key 
+//							Place keyPlace = (Place) this.getLocation();
+//							if (game.getItem("rat").getLocation() != keyPlace) {
+//								// if the key is in a room without the rat and the player tries to pick it up,
+//								// the rat moves to that room and has the key again!
+//								game.getItem("rat").move(keyPlace);
+//								throw new ActionException("The Rat has it");
+//							}
+//							if (((game.getItem("rat").getLocation() == keyPlace) && (game.getItem("cheese").getLocation() == keyPlace))) {
+//								// key, rat, and cheese must all be in the room together to pick up the key!
+//								super.move(destination);
+//							} else {
+//								throw new ActionException("The Rat has it");
+//							}
+//						} else {
+//							throw new ActionException("You can't get it");
+//						}
+//					}
 				}	
 	
 				@Override
@@ -433,34 +450,11 @@ public class Vampire extends TextGameSinglePlayer {
 		// put items in their initial places
 	
 		try {
-			// 1
-//			game.getItem("timepiece").move(game.getPlace("entrance hall"));
-//			game.getItem("sign").move(game.getPlace("entrance hall"));
-
-//			game.getItem("fireplace").move(game.getPlace("study"));
-//			game.getItem("_fire").move(game.getPlace("study"));
-//			game.getItem("cheddar cheese").move(game.getPlace("study"));
-//			game.getItem("wine").move(game.getPlace("study"));
-
-//			game.getItem("parchment scroll").move(game.getPlace("library"));
-//			game.getItem("bookcase").move(game.getPlace("library"));
-			
-//			game.getItem("axe").move(game.getPlace("armory"));
-
-//			game.getItem("_parapets").move(game.getPlace("tower"));
-//			game.getItem("sledge hammer").move(game.getPlace("tower"));
 			
 			// 6
 			
-			game.getItem("oar").move(game.getPlace("lower tower"));
-			
-			game.getItem("holywater").move(game.getPlace("chapel"));
-
-			game.getItem("rope").move(game.getPlace("hidden corridor"));
 
 			game.getItem("torch").move(game.getPlace("_fireplace")); 
-
-			// nothing in secret passage
 
 			// 11
 			
@@ -473,19 +467,15 @@ public class Vampire extends TextGameSinglePlayer {
 			game.getItem("crate").move(game.getPlace("storeroom"));
 			game.getItem("bucket").move(game.getPlace("storeroom"));
 
-			game.getItem("nails").move(game.getPlace("overhang"));
-
 			// 16
 			
 			game.getItem("tapestry").move(game.getPlace("gallery"));
 
-			game.getItem("rusty door").move(game.getPlace("antechamber"));
-
-			game.getItem("closed coffin").move(game.getPlace("vampire's tomb"));
-
 			game.getItem("rat").move(game.getPlace("torture chamber"));
 
-		} catch (ActionException e) {}	
+		} catch (ActionException e) {
+			e.printStackTrace();
+		}	
 		
 		
 		// Initial map of all of rooms
@@ -511,7 +501,10 @@ public class Vampire extends TextGameSinglePlayer {
 
 		game.getPlace("boat").setConnection(game.getDirection("south"), game.getPlace("lake"));
 		
-		// initial player location	
+		game.getPlace("overhang").setConnection(game.getDirection("down"), game.getPlace("gallery"));
+
+		// Initial player location	
+		
 		game.getPlayer().setLocation(game.getPlace("entrance hall"));
 
 		
@@ -536,6 +529,11 @@ public class Vampire extends TextGameSinglePlayer {
 		try {
 			game.getItem("torch").move(game.getPlayer());		
 			game.getItem("oar").move(game.getPlayer());		
+			game.getItem("hammer").move(game.getPlayer());
+			game.getItem("crate").move(game.getPlayer());	
+			game.getItem("axe").move(game.getPlayer());	
+			game.getItem("oil").move(game.getPlayer());	
+			game.getItem("key").move(game.getPlayer());	
 		} catch (ActionException e) {
 			e.printStackTrace();
 		}
@@ -556,6 +554,25 @@ public class Vampire extends TextGameSinglePlayer {
 120 DIM D$(19), O$(31), L(25), P(19, 6): L = 1
 
 Room Names: D(room#)
+1 Entrance Hall
+2 Study
+3 Library
+4 Armory
+5Tower  
+6 Lower Tower
+7 Chapel 
+8 Brick Fireplace
+9 Hidden Corridor
+10 Secret Passage
+11 Underground Lake Chamber
+12 Boat
+13 Alchemist's Lab 
+14 Storeroom
+15 Overhang
+16 Gallery
+17 Antechamber
+18 Vampire's Tomb
+19 Torture Chamber
 
 130 FOR x = 1 TO 19: READ D$(x): NEXT x
 140 DATA Entrance Hall,Study,Library,Armory,Tower  5
@@ -568,6 +585,34 @@ Room Names: D(room#)
 Things (first 6 are directions): O$(Item#)
 Location of things: L(Item#-6)
 
+L(X)/S
+1/7 Sledge Hammer,5
+2/8 Timepiece,1,
+3/9 Coil of Rope,9,
+4/10 Parchment Scroll,3,
+5/11 Axe,4,
+6/12 Oar,6,
+7/13 Key,99
+8/14 Holywater,7,
+9/15 Flask of Oil,13,
+10/16 Crate,14,
+11/17 Bucket,14
+12/18 Torch,8,
+13/19 Nails,15,
+14/20 Tapestry,16,
+15/21 Boat,11,
+16/22 Rusty Door,17
+17/23 Closed Coffin,18,
+18/24 Fire in the Fireplace,2
+19/25 Bookcase,3,
+20/26 Sign,1,
+21/27 Parapets,5,
+22/28 Brick Fireplace,2
+23/29 Rat,19,
+24/30 Wine,2,
+25/31 Cheddar Cheese,2
+
+
 200 FOR x = 1 TO 31: READ O$(x): IF x > 6 THEN READ L(x - 6)
 220 NEXT: T2 = 8: R = 11: WS$ = "Wooden Stakes"
 230 DATA North,South,East,West,"Up ",Down,Sledge Hammer,5
@@ -578,12 +623,37 @@ Location of things: L(Item#-6)
 280 DATA Bookcase,3,Sign,1,Parapets,5,Brick Fireplace,2
 290 DATA Rat,19,Wine,2,Cheddar Cheese,2
 
-Directions from Rooms to other rooms: P(room#, direction#)
+Directions Mapped from Rooms to other rooms: P(room#, direction#)
+
+Direction #s:
+1 = N
+2 = S
+3 = E
+4 = W
+5 = U
+6 = D
 
 300 FOR Y = 1 TO 19: FOR x = 1 TO 6: READ P(Y, x): NEXT x, Y
-310 DATA ,,3,2,,,,,1,,,,,,4,1,,,,,5,3,,,,,,4,,,,7,,,5,,6,,,,4,
-320 DATA ,2,,,,,13,,,,3,,11,8,,19,,,,10,,,,,,11,,,,,14,9,,,,
-330 DATA ,13,,,2,,,,,,,16,,,,,,,,16,,,,,,17,,,,,,,10,13,,
+1 -,-,3,2,-,-,			Entrance Hall
+2 -,-,1,-,-,-,			Study
+3 -,-,4,1,-,-,			Library
+4 -,-,5,3,-,-,			Armory
+5 -,-,-,4,-,-,			Tower
+6 -,7,-,-,5,-,			Lower Tower
+7 6,-,-,-,4,-,			Chapel
+8 -,2,-,-,-,-,			Brick Fireplace
+9 13,-,-,-,3,-,			Hidden Corridor
+10 11,8,-,19,-,-,		Secret Passage
+11 -,10,-,-,-,-,		Underground Lake Chamber
+12 -,11,-,-,-,-,		Boat
+13 14,9,-,-,-,-,		Alchemist's Lab
+14 -,13,-,-,2,-,		Storerooom
+15 -,-,-,-,-,16,		Overhang
+16 -,-,-,-,-,-,			Gallery
+17 -,16,-,-,-,-,		Antechamber
+18 -,17,-,-,-,-,		Vampire's Tomb
+19 -,-,10,13,-,-		Torture Chamber
+
 
 Verb lookup to get # of action:
 
@@ -605,6 +675,8 @@ A$ = the verb (three letter code)
 S = object of the verb (either a direction 0-6 or an item)
 
 
+Look around:
+
 360 COLOR 2, 0: PRINT "You are in the "; D$(L): Y = 0: L2 = L
 370 IF L(12) = 0 OR L < 10 OR (L > 12 AND L <> 18) THEN 390
 380 PRINT "It's Dark! you can't see": GOTO 440
@@ -612,6 +684,8 @@ S = object of the verb (either a direction 0-6 or an item)
 400 NEXT: IF Y = 0 THEN PRINT "nothing interesting." ELSE PRINT CHR$(29); CHR$(29); " "
 420 PRINT "Obvious exits are: "; : FOR x = 1 TO 6: IF P(L, x) > 0 THEN PRINT O$(x); " ";
 430 NEXT: PRINT
+
+
 440 S = 0: F = 0: COLOR 10, 0: PRINT : INPUT "What do you want to do"; A$: PRINT : COLOR 2
 450 A$ = A$: B$ = "   ": FOR x = 1 TO LEN(A$)
 460 IF MID$(A$, x, 1) = " " THEN B$ = MID$(A$ + "   ", x + 1, 3)
@@ -659,7 +733,8 @@ branch to verb "handlers"
 770 IF FI = 0 THEN COLOR 0, 7: PRINT " You have Burned to Death "; : GOTO 1750
 780 L = 8: GOTO 360
 790 IF S <> 27 OR L <> 5 THEN 820
-800 IF LEFT$(O$(27), 1) = "R" THEN L = 6: PRINT "Climbed down rope": PRINT : GOTO 360
+		// in the tower and go -> parapets
+800 IF LEFT$(O$(27), 1) = "R" THEN L = 6: PRINT "Climbed down rope": PRINT : GOTO 360  // if the rope is tied to parapets, climb down to lower tower, else fell and died
 810 COLOR 0, 7: PRINT " You fell and Died "; : GOTO 1750
 820 IF S = 21 AND L(15) = L THEN L = 12: GOTO 360
 830 IF L = 16 AND B$ = "OVE" THEN 860
@@ -676,10 +751,10 @@ branch to verb "handlers"
 920 IF S <> 14 THEN 960
 940 V$ = "In": GOSUB 1850: IF A$ = "BUC" AND L(11) = 0 THEN 1080
 950 PRINT "You can't do that": GOTO 440
-960 IF S <> 20 THEN 990
+960 IF S <> 20 THEN 990      // item 20 is "tapestry"
 970 IF TA = 0 THEN PRINT "It's nailed to an overhang": GOTO 440
 980 P(16, 1) = 17: PRINT "AHA! - A hole in the wall": PRINT : GOTO 1080
-990 IF S <> 19 THEN 1020
+990 IF S <> 19 THEN 1020      // item 19 is "nails"
 1000 IF L(1) <> 0 THEN PRINT "You have no hammer": GOTO 440
 1010 IF L(13) = 15 THEN TA = 1: PRINT "The tapestry is loose": GOTO 1080
 1020 IF S <> 13 THEN 1050
@@ -716,8 +791,10 @@ branch to verb "handlers"
 1290 REM  -HIT-
 1300 IF S < 7 THEN 700
 1310 IF L(S - 6) <> L AND (L <> 8 OR S <> 28) THEN 1070
+// crate with axe = wooden stakes
 1330 V$ = "With": GOSUB 1850: IF A$ <> "AXE" OR S <> 16 OR L(5) <> 0 THEN 1350
 1340 O$(16) = WS$: N$ = N$ + "WOO16STA16": GOTO 360
+// fire place with sledge hammer = broken fireplace and new passageway
 1350 IF (A$ <> "SLE" AND A$ <> "HAM") OR S <> 28 OR L(1) <> 0 THEN 1370
 1360 O$(28) = "Broken Fireplace": P(8, 1) = 10: D$(8) = O$(28): GOTO 360
 1370 PRINT "Nothing happened": GOTO 440
@@ -754,8 +831,8 @@ branch to verb "handlers"
 
 
 1600 REM  -KILL-
-1610 IF S < 7 THEN 700
-1620 IF S <> 23 OR LEFT$(O$(23), 1) <> "V" THEN 950
+1610 IF S < 7 THEN 700   "I don't know that word"
+1620 IF S <> 23 OR LEFT$(O$(23), 1) <> "V" THEN 950     /// "You can't do that"
 1630 V$ = "With": GOSUB 1850
 1640 IF (A$ = "WOO" OR A$ = "STA") AND L(10) = 0 AND O$(16) = WS$ THEN 1660
 1650 COLOR 0, 7: PRINT " You Failed!  The Vampire awakes and sucks your Blood! "; : GOTO 1750

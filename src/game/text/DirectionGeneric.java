@@ -36,7 +36,11 @@ public class DirectionGeneric extends ActionableGeneric implements Direction {
 				@Override
 				public Result execute(Actor actor) {
 					this.incrementCount();
-					return null;
+					if (actor instanceof Player) {
+						return new ResultGeneric(true, ((Player) actor).getLocation().look());
+					 } else {
+						 return null;
+					 }
 				}						
 			}
 		);
