@@ -30,9 +30,4 @@ public class Overhang extends PlaceGeneric {
 			}						
 		});
 	}
-	
-//	@Override
-//	public Result go() {
-//		
-//	}
 }
