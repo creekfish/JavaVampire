@@ -87,7 +87,7 @@ public class Vampire extends TextGameSinglePlayer {
 		String out = "";
 		out += "VAMPIRE'S CASTLE has a concealed goal.  You learn what the goal is\n";
 		out += "by exploring your surroundings.  The computer will act as your eyes\n";
-		out += "and hands.  It will accepts short phrases as commands and assumes\n";
+		out += "and hands.  It will accept short phrases as commands and assumes\n";
 		out += "that the first word is a verb and the last word is the object.\n";
 		out += "For example: READ THE SIGN.  The computer has a vocabulary of about\n";
 		out += "70 words.  Some of the more important words you should know before\n";
@@ -103,12 +103,26 @@ public class Vampire extends TextGameSinglePlayer {
 	}
 	
 	@Override
-	public void start() {
+	public void restart() {
 		setTime(8*60+1);
-		super.start();
+		super.restart();
 	}
 	
-	@Override
+    @Override
+    public void end(boolean won, String message) {
+    	super.end(won, message); 
+    	output("Would you like to try again? ");
+    	String choice = input().toLowerCase().substring(0, 1);
+    	if (choice.equals("y")) {
+    		this.restart();
+    	}
+    	if (choice.equals("r")) {
+    		this.setTime(this.gameTime-2);
+    	}
+     }    
+
+
+    @Override
 	public void moveDone() {
 		addTime(1);
 		if (gameTime >= 12*60) {
@@ -150,13 +164,9 @@ public class Vampire extends TextGameSinglePlayer {
 		});	
 	}
 	
-	
-	/**
-	 * @param args
-	 */	
-	public static void main(String[] args) {
-		final Vampire game = new Vampire();
-		
+	@Override
+	public void initialize() {
+		Vampire game = this;
 		
 		// Create a player
 		
@@ -281,23 +291,25 @@ public class Vampire extends TextGameSinglePlayer {
 //		}
 
 		
-		game.getPlayer().setLocation(game.getPlace("lake"));
-		try {
-			game.getItem("torch").move(game.getPlayer());		
-			game.getItem("oar").move(game.getPlayer());		
-			game.getItem("hammer").move(game.getPlayer());
-			game.getItem("crate").move(game.getPlayer());	
-			game.getItem("axe").move(game.getPlayer());	
-			game.getItem("oil").move(game.getPlayer());	
+//		game.getPlayer().setLocation(game.getPlace("vampire's tomb"));
+//		try {
+//			game.getItem("torch").move(game.getPlayer());		
+//			game.getItem("oar").move(game.getPlayer());		
+//			game.getItem("hammer").move(game.getPlayer());
+//			game.getItem("crate").move(game.getPlayer());	
+//			game.getItem("axe").move(game.getPlayer());	
+//			game.getItem("oil").move(game.getPlayer());	
 //			game.getItem("key").move(game.getPlayer());	
-		} catch (ActionException e) {
-			e.printStackTrace();
-		}
+//		} catch (ActionException e) {
+//			e.printStackTrace();
+//		}
 		
-		
+	}
+	
+	public static void main(String[] args) {
+		final Vampire game = new Vampire();
 		// start the game
 		game.start();
-		
 	}
 
 }

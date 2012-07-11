@@ -17,7 +17,7 @@ public class Key extends ItemGeneric {
 
 	@Override
 	public void move(Container<Item> destination) throws ActionException {
-		if (destination instanceof Place) {
+		if (true) { // destination instanceof Place) {
 			super.move(destination);  // always allow key to be dropped any place
 		} else {
 			// player tries to pick up the key

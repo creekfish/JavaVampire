@@ -89,12 +89,32 @@ public abstract class TextGameSinglePlayer extends ActionableGeneric implements 
 		);
 	}
     
+	/**
+	 * Initialize all of the game objects and configuration.
+	 */
+	abstract public void initialize();
+
     public void start() {
-    	isStarted = true;
-    	moves = 0;
+    	restart();
     	mainEventLoop();
     }
     
+    public void restart() {
+    	initialize();
+    	isStarted = true;
+    	isEnded = false;
+    	isWon = false;
+    	moves = 0;
+    	String input;
+    	output(welcome());
+    	input = input().toLowerCase();
+    	if (input.startsWith("y")) {
+    		output(instructions());
+    	}
+    	output("\n");
+    	output(player.getLocation().getAction("look").execute(player).getMessage());
+    }
+
     public void end(boolean won, String message) {
     	isEnded = true;
     	isWon = won;
@@ -107,16 +127,9 @@ public abstract class TextGameSinglePlayer extends ActionableGeneric implements 
 
     protected void mainEventLoop() {
     	String input;
-    	output(welcome());
-    	input = input().toLowerCase();
-    	if (input.startsWith("y")) {
-    		output(instructions());
-    	}
-    	output("\n");
-    	output(player.getLocation().getAction("look").execute(player).getMessage());
     	while (!ended()) {
     		output("\n\nWhat do you want to do? ");
-    		input = input();
+    		input = input().trim();
     		// parse input string
     		if (grammar.parse(input)) {
         		// take the action

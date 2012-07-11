@@ -43,7 +43,7 @@ public class Coffin extends ItemFixedInPlace {
 		this.addAction(new ActionGeneric("kill") {
 			@Override
 			public Result execute(Actor actor) {
-				if (((Player) actor).getLocation().equals("vampire's tomb") && 
+				if (((Player) actor).getLocation().equals(game.getPlace("vampire's tomb")) && 
 						Coffin.this.getData("open") != null) {
 					game.output("      -- With what? ");
 					String input = game.input();
