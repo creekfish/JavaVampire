@@ -17,7 +17,7 @@ public class PlayerGeneric extends ActionableContainerGeneric<Item> implements P
 
 	@Override
 	public void setDefaultActions() {
-		this.addAction(new ActionGeneric("look") {
+		this.addAction(new ActionInitial("look") {
 				@Override
 				public Result execute(Actor actor) {
 					if (actor instanceof Player) {

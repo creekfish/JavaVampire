@@ -30,7 +30,7 @@ public class PlaceGeneric extends ActionableContainerGeneric<Item> implements Pl
 
 	@Override
 	public void setDefaultActions() {
-		this.addAction(new ActionGeneric("look") {
+		this.addAction(new ActionInitial("look") {
 				@Override
 				public Result execute(Actor actor) {
 					this.incrementCount();
@@ -40,7 +40,7 @@ public class PlaceGeneric extends ActionableContainerGeneric<Item> implements Pl
 			}
 		);
 
-		this.addAction(new ActionGeneric("go") {
+		this.addAction(new ActionInitial("go") {
 				@Override
 				public Result execute(Actor actor) {
 					if (actor instanceof Player) {

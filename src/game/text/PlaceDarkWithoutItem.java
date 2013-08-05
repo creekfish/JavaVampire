@@ -20,8 +20,8 @@ public class PlaceDarkWithoutItem extends PlaceGeneric {
 	// NOTE: must make the change to check for lighted item in actions list
 	// not override look(), since must check actor for possession of the item
 	public void addLightToLook() {
-		final Action lightedLook = this.getAction("look");  
-		this.addAction(new ActionGeneric("look") {
+		final ActionInitial lightedLook = this.getInitialAction("look");  
+		this.addAction(new ActionInitial("look") {
 				@Override
 				public Result execute(Actor actor) {
 					if (((Player) actor).hasOne(providesLight)) {

@@ -17,28 +17,31 @@ public class Key extends ItemGeneric {
 
 	@Override
 	public void move(Container<Item> destination) throws ActionException {
-		if (true) { // destination instanceof Place) {
-			super.move(destination);  // always allow key to be dropped any place
-		} else {
-			// player tries to pick up the key
-			if (this.getData("can_see") != null) {  // player must "look" at the rat first to see the key 
-				Place keyPlace = (Place) this.getLocation();
-				if (game.getItem("rat").getLocation() != keyPlace) {
-					// if the key is in a room without the rat and the player tries to pick it up,
-					// the rat moves to that room and has the key again!
-					game.getItem("rat").move(keyPlace);
-					throw new ActionException("The Rat has it");
-				}
-				if (((game.getItem("rat").getLocation() == keyPlace) && (game.getItem("cheese").getLocation() == keyPlace))) {
-					// key, rat, and cheese must all be in the room together to pick up the key!
-					super.move(destination);
-				} else {
-					throw new ActionException("The Rat has it");
-				}
-			} else {
-				throw new ActionException("You can't get it");
-			}
-		}
+//		if (destination instanceof Place) {
+		super.move(destination);  // always allow key to be dropped any place
+//		} else {
+//			// This re-creates a bug that existed in the original BASIC language code,
+//			// The conditional above can be re-activated if the bug is desired.
+//			
+//			// player tries to pick up the key
+//			if (this.getData("can_see") != null) {  // player must "look" at the rat first to see the key 
+//				Place keyPlace = (Place) this.getLocation();
+//				if (game.getItem("rat").getLocation() != keyPlace) {
+//					// if the key is in a room without the rat and the player tries to pick it up,
+//					// the rat moves to that room and has the key again!
+//					game.getItem("rat").move(keyPlace);
+//					throw new ActionException("The Rat has it");
+//				}
+//				if (((game.getItem("rat").getLocation() == keyPlace) && (game.getItem("cheese").getLocation() == keyPlace))) {
+//					// key, rat, and cheese must all be in the room together to pick up the key!
+//					super.move(destination);
+//				} else {
+//					throw new ActionException("The Rat has it");
+//				}
+//			} else {
+//				throw new ActionException("You can't get it");
+//			}
+//		}
 	}	
 
 	@Override

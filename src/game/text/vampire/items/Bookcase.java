@@ -1,6 +1,6 @@
 package game.text.vampire.items;
 
-import game.text.ActionGeneric;
+import game.text.ActionInitial;
 import game.text.Actor;
 import game.text.ItemFixedInPlace;
 import game.text.Player;
@@ -14,7 +14,7 @@ public class Bookcase extends ItemFixedInPlace {
 	public Bookcase(TextGame _game) {
 		super("Bookcase", "");
 		this.game = _game;
-		this.addAction(new ActionGeneric("push") {
+		this.addAction(new ActionInitial("push") {
 				@Override
 				public Result execute(Actor actor) {
 					if (((Player) actor).getLocation().hasOne(Bookcase.this)) {

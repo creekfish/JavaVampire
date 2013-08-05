@@ -4,6 +4,8 @@ import java.util.Collection;
 
 public interface Game extends Thing, Actionable {
 
+	public void initialize();
+	
 	public void addPlayer(Player player);
 	public void removePlayer(Player player);
 	public Player getPlayer();

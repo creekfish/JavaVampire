@@ -1,6 +1,6 @@
 package game.text.vampire.places;
 
-import game.text.ActionGeneric;
+import game.text.ActionInitial;
 import game.text.Actor;
 import game.text.Game;
 import game.text.PlaceGeneric;
@@ -17,7 +17,7 @@ public class Overhang extends PlaceGeneric {
 		this.game = game;
 		this.moveItemHere(this.game.getItem("nails"));
 		// map over the normal "go"
-		this.addAction(new ActionGeneric("go") {
+		this.addAction(new ActionInitial("go") {
 			@Override
 			public Result execute(Actor actor) {
 				if (actor instanceof Player && Overhang.this.game.getPlace("gallery").hasOne("crate")) {

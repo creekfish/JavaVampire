@@ -1,6 +1,6 @@
 package game.text.vampire.places;
 
-import game.text.ActionGeneric;
+import game.text.ActionInitial;
 import game.text.Actor;
 import game.text.PlaceGeneric;
 import game.text.Player;
@@ -15,7 +15,7 @@ public class BoatPlace extends PlaceGeneric {
 	public BoatPlace(TextGame _game)  throws ActionException {
 		super("Boat", "");
 		this.game = _game;
-		this.addAction(new ActionGeneric("row") {
+		this.addAction(new ActionInitial("row") {
 			@Override
 			public Result execute(Actor actor) {
 				if (((Player) actor).getLocation() == game.getPlace("boat")) {
@@ -37,7 +37,7 @@ public class BoatPlace extends PlaceGeneric {
 						}
 						return new ResultGeneric(true, "You have rowed to the "+
 								((Player) actor).getLocation().getName()+"\n\n"+
-								((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
+								((Player) actor).getLocation().getInitialAction("look").execute(actor).getMessage());
 					} else {
 						return new ResultGeneric(false, "You can't do that");
 					}						
@@ -47,19 +47,19 @@ public class BoatPlace extends PlaceGeneric {
 			}					
 		});
 		// map over the normal "go"
-		this.addAction(new ActionGeneric("go") {
+		this.addAction(new ActionInitial("go") {
 			@Override
 			public Result execute(Actor actor) {
 				if (((Player) actor).getLocation().hasOne("boat")) {  // if the boat is in the same room
 					((Player) actor).setLocation(game.getPlace("boat"));
-					return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
+					return new ResultGeneric(true, ((Player) actor).getLocation().getInitialAction("look").execute(actor).getMessage());
 				} else {
 					return new ResultGeneric(false, "You can't go there");
 				}
 			}								
 		});
 		// map over the normal "get"
-		this.addAction(new ActionGeneric("get") {
+		this.addAction(new ActionInitial("get") {
 			@Override
 			public Result execute(Actor actor) {
 				return new ResultGeneric(false, "You can't get it");

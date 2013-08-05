@@ -29,7 +29,7 @@ public class ItemGeneric extends ActionableContainerGeneric<Item> implements Ite
 	
 	@Override
 	public void setDefaultActions() {
-		this.addAction(new ActionGeneric("look") {
+		this.addAction(new ActionInitial("look") {
 				@Override
 				public Result execute(Actor actor) {
 					this.incrementCount();
@@ -39,16 +39,16 @@ public class ItemGeneric extends ActionableContainerGeneric<Item> implements Ite
 			}
 		);
 
-		this.addAction(new ActionGeneric("read") {
+		this.addAction(new ActionInitial("read") {
 				@Override
 				public Result execute(Actor actor) { 
 					// alias to "look"
-					return ItemGeneric.this.getAction("look").execute(actor);
+					return ItemGeneric.this.getInitialAction("look").execute(actor);
 				}
 			}
 		);
 
-		this.addAction(new ActionGeneric("get") {
+		this.addAction(new ActionInitial("get") {
 			@Override
 			public Result execute(Actor actor) {
 				// no limit on how many times this can be executed
@@ -60,22 +60,13 @@ public class ItemGeneric extends ActionableContainerGeneric<Item> implements Ite
 					} catch (ActionException e) {
 						return new ResultGeneric(false, e.getMessage());
 					}
-//
-//						if (!((Player) actor).basketIsFull()) {							
-//								return new ResultGeneric(true, "OK, you got the "+ItemGeneric.this.getName());
-//							} else {
-//								return new ResultGeneric(false, "I don't see any "+ItemGeneric.this.getName());
-//							}
-//						} else {
-//							return new ResultGeneric(false, "You can't carry any more");
-//						}
 				} else {
 					return new ResultGeneric(false, "You can't pick up an item!");						
 				}
 			}
 		});
 
-		this.addAction(new ActionGeneric("drop") {
+		this.addAction(new ActionInitial("drop") {
 			@Override
 			public Result execute(Actor actor) {
 				// no limit on how many times this can be executed
@@ -87,16 +78,6 @@ public class ItemGeneric extends ActionableContainerGeneric<Item> implements Ite
 					} catch (ActionException e) {
 						return new ResultGeneric(false, e.getMessage());
 					}
-//
-//						if (!((Player) actor).basketIsEmpty()) {
-//							if (((Player) actor).drop(ItemGeneric.this)) {
-//								return new ResultGeneric(true, "The "+ItemGeneric.this.getName()+" is on the "+((Player) actor).getLocation().getName()+" floor");
-//							} else {
-//								return new ResultGeneric(false, "You don't have it");
-//							}
-//						} else {
-//							return new ResultGeneric(false, "You don't have it");							
-//						}
 				} else {
 					return new ResultGeneric(false, "You can't drop an item!");						
 				}
@@ -105,17 +86,11 @@ public class ItemGeneric extends ActionableContainerGeneric<Item> implements Ite
 		
 		this.addAction("throw", this.getAction("drop"));  // "throw" = alias for "drop"
 
-		this.addAction(new ActionGeneric("hit") {
+		this.addAction(new ActionInitial("hit") {
 			@Override
 			public Result execute(Actor actor) {				
 				if (actor instanceof Player) {
 					if (((Player) actor).getLocation().hasOne(ItemGeneric.this)) {
-
-						
-//						game.output("      -- With what? ");
-//						String input = game.input();
-
-						
 						// default for hitting something is that nothing happens
 						return new ResultGeneric(false, "Nothing happened");
 					} else {

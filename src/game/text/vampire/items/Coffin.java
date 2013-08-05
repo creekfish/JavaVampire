@@ -1,11 +1,13 @@
 package game.text.vampire.items;
 
-import game.text.ActionGeneric;
+import game.text.ActionContinued;
+import game.text.ActionInitial;
 import game.text.Actor;
 import game.text.ItemFixedInPlace;
 import game.text.Player;
 import game.text.Result;
 import game.text.ResultGeneric;
+import game.text.ResultPartial;
 import game.text.TextGame;
 
 public class Coffin extends ItemFixedInPlace {
@@ -14,7 +16,7 @@ public class Coffin extends ItemFixedInPlace {
 	public Coffin(TextGame _game) {
 		super("Closed Coffin", "");
 		this.game = _game;
-		this.addAction(new ActionGeneric("open") {
+		this.addAction(new ActionInitial("open") {
 			@Override
 			public Result execute(Actor actor) {
 				if (Coffin.this.getData("unlocked") == null) {
@@ -40,21 +42,30 @@ public class Coffin extends ItemFixedInPlace {
 				}
 			}								
 		});
-		this.addAction(new ActionGeneric("kill") {
+		this.addAction(new ActionInitial("kill") {
 			@Override
 			public Result execute(Actor actor) {
 				if (((Player) actor).getLocation().equals(game.getPlace("vampire's tomb")) && 
 						Coffin.this.getData("open") != null) {
-					game.output("      -- With what? ");
-					String input = game.input();
-					if (game.matchItem(input) == game.getItem("wooden stakes") && 
+					return new ResultPartial(true, "      -- With what? ", (ActionContinued) Coffin.this.getAction("kill_with"));
+				}
+				game.end(false);
+				return new ResultGeneric(false, "You Failed!  The Vampire awakes and sucks your Blood!\n");
+			}								
+		});
+		this.addAction(new ActionContinued("kill_with") {
+			@Override
+			public Result execute(Actor actor, String feedback) {
+				if (((Player) actor).getLocation().equals(game.getPlace("vampire's tomb")) && 
+						Coffin.this.getData("open") != null) {
+					if (game.matchItem(feedback) == game.getItem("wooden stakes") && 
 							((Player) actor).hasOne("wooden stakes")) {
-						game.end(true, "Congratulations!  You have killed the Vampire\n");
-						return null;
+						game.end(true);
+						return new ResultGeneric(true, "Congratulations!  You have killed the Vampire\n");
 					}
 				}
-				game.end(false, "You Failed!  The Vampire awakes and sucks your Blood!\n");
-				return null;
+				game.end(false);
+				return new ResultGeneric(false, "You Failed!  The Vampire awakes and sucks your Blood!\n");
 			}								
 		});
 	}

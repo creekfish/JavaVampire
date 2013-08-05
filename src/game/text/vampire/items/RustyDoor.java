@@ -1,6 +1,6 @@
 package game.text.vampire.items;
 
-import game.text.ActionGeneric;
+import game.text.ActionInitial;
 import game.text.Actor;
 import game.text.ItemFixedInPlace;
 import game.text.Place;
@@ -15,7 +15,7 @@ public class RustyDoor extends ItemFixedInPlace {
 	public RustyDoor(TextGame _game) {
 		super("Rusty Door", "");
 		this.game = _game;
-		this.addAction(new ActionGeneric("open") {
+		this.addAction(new ActionInitial("open") {
 			@Override
 			public Result execute(Actor actor) {
 				if (RustyDoor.this.getData("oiled") != null) {
@@ -29,7 +29,7 @@ public class RustyDoor extends ItemFixedInPlace {
 				}
 			}								
 		});
-		this.addAction(new ActionGeneric("oil") {
+		this.addAction(new ActionInitial("oil") {
 			@Override
 			public Result execute(Actor actor) {
 				if (RustyDoor.this.getData("oiled") == null) {

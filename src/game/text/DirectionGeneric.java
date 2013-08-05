@@ -32,7 +32,7 @@ public class DirectionGeneric extends ActionableGeneric implements Direction {
 	
 	@Override
 	public void setDefaultActions() {
-		this.addAction(new ActionGeneric("look") {
+		this.addAction(new ActionInitial("look") {
 				@Override
 				public Result execute(Actor actor) {
 					this.incrementCount();
@@ -45,7 +45,7 @@ public class DirectionGeneric extends ActionableGeneric implements Direction {
 			}
 		);
 
-		this.addAction(new ActionGeneric("go") {
+		this.addAction(new ActionInitial("go") {
 				@Override
 				public Result execute(Actor actor) {
 					if (actor instanceof Player) {
@@ -53,7 +53,7 @@ public class DirectionGeneric extends ActionableGeneric implements Direction {
 						// no limit on how many times this can be executed
 						if (((Player) actor).getLocation().isExit(DirectionGeneric.this)) {
 							((Player) actor).go(DirectionGeneric.this);
-							return new ResultGeneric(true, ((Player) actor).getLocation().getAction("look").execute(actor).getMessage());
+							return new ResultGeneric(true, ((Player) actor).getLocation().getInitialAction("look").execute(actor).getMessage());
 						} else {
 							return new ResultGeneric(false, "You can't go there");
 						}
@@ -66,7 +66,7 @@ public class DirectionGeneric extends ActionableGeneric implements Direction {
 
 	public Result executeAction(String actionKey, Actor actor) {
 		if (this.getAction(actionKey) != null) {
-			Action action = this.getAction(actionKey);
+			ActionInitial action = this.getInitialAction(actionKey);
 			return action.execute(actor);
 		}
 		return null;

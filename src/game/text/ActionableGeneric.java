@@ -22,11 +22,22 @@ public abstract class ActionableGeneric implements Actionable {
 	public Action getAction(String actionKey) {
 		return this.actions.get(actionKey.toLowerCase());
 	}
+	
+	public ActionInitial getInitialAction(String actionKey) {
+		Action action = getAction(actionKey);
+		if (action instanceof ActionInitial) {
+			return (ActionInitial) action;
+		}
+		return null;
+	}
 
-	public Action matchAction(String actionKeyStartsWith) {
+	public ActionInitial matchInitialAction(String actionKeyStartsWith) {
 		for (String actionName : actions.keySet()) {
 			if (actionName.startsWith(actionKeyStartsWith)) {
-				return actions.get(actionName);
+				Action action = actions.get(actionName);
+				if (action instanceof ActionInitial) {
+					return (ActionInitial) action; 
+				}
 			}
 		}
 		return null;
@@ -46,7 +57,10 @@ public abstract class ActionableGeneric implements Actionable {
 	public Result executeAction(String actionKey, Actor actor) {
 		if (actions.containsKey(actionKey)) {
 			Action action = actions.get(actionKey);
-			return action.execute(actor);
+			// don't directly execute action that is continued from an initial action
+			if (action instanceof ActionInitial) {
+				return ((ActionInitial) action).execute(actor);
+			}
 		}
 		return null;
 	}

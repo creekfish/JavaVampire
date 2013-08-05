@@ -2,20 +2,20 @@ package game.text;
 
 public class GrammarSimple implements Grammar {
 	private TextGame game;
-//	private Player player;
-	private Action verb;
+	private String fullText;
+	private ActionInitial verb;
 	private Actionable object;
 	
 	public GrammarSimple(TextGame game) {
 		this.game = game;
-//		this.player = game.getPlayer();
+		fullText = null;
 		verb = null;
 		object = null;
 	}
 	
 	public GrammarSimple(TextGame game, final String input) {
 		this.game = game;
-//		this.player = game.getPlayer();
+		fullText = null;
 		verb = null;
 		object = null;
 		parse(input);
@@ -26,6 +26,7 @@ public class GrammarSimple implements Grammar {
 	}
 
 	public boolean parse(final String input) {
+		fullText = input;
 		object = null;
 		verb = null;
 		String lower = input.toLowerCase();
@@ -36,7 +37,7 @@ public class GrammarSimple implements Grammar {
 				Item item = game.matchItem(part[part.length-1]);
 				if (item != null) {
 					object = item;
-					verb = object.matchAction(part[0]);
+					verb = object.matchInitialAction(part[0]);
 					if (verb != null) {
 						return true;   // verb and object parsed
 					}
@@ -46,7 +47,7 @@ public class GrammarSimple implements Grammar {
 				Direction dir = game.matchDirection(part[part.length-1]);
 				if (dir != null) {
 					object = dir;
-					verb = object.matchAction(part[0]);
+					verb = object.matchInitialAction(part[0]);
 					if (verb != null) {
 						return true;   // verb and object parsed
 					}
@@ -56,7 +57,7 @@ public class GrammarSimple implements Grammar {
 				Place place = game.matchPlace(part[part.length-1]);
 				if (place != null) {
 					object = place;
-					verb = object.matchAction(part[0]);
+					verb = object.matchInitialAction(part[0]);
 					if (verb != null) {
 						return true;   // verb and object parsed
 					}
@@ -66,14 +67,14 @@ public class GrammarSimple implements Grammar {
 			// apply verb with no object
 			String action = part[0];
 			// game actions
-			verb = game.matchAction(action);
+			verb = game.matchInitialAction(action);
 			if (verb != null) {
 				return true;
 			} else {
 				// "go" direction shortcuts
 				for (Direction dir : game.getDirections()) {
 					if (dir.getName().toLowerCase().startsWith(action)) {
-						verb = dir.matchAction("go");
+						verb = dir.matchInitialAction("go");
 						return true;
 					}
 				}
@@ -88,7 +89,12 @@ public class GrammarSimple implements Grammar {
 		return object;
 	}
 
-	public Action getVerb() {
+	public ActionInitial getVerb() {
 		return verb;
 	}
+	
+	public String getUnparsedText() {
+		return fullText;
+	}
+	
 }
